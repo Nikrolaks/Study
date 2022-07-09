@@ -13,16 +13,16 @@
 template <typename Key, typename Prior>
 class treap {
 	template <typename Key1, typename Prior1>
-	friend std::ostream &operator<<(std::ostream &out,
-		const treap<Key1, Prior1> &tr);
+	friend std::ostream& operator<<(std::ostream& out,
+		const treap<Key1, Prior1>& tr);
 public:
 	treap() {}
-	treap(std::vector<std::pair<Key, Prior>> &pairs) {
+	treap(std::vector<std::pair<Key, Prior>>& pairs) {
 		std::sort(pairs.begin(), pairs.end(), [](decltype(**head) f, decltype(**head) s) {
 			return f.first < s.first; });
 		if (pairs.size()) {
 			head = new node(pairs[0].first, pairs[0].second);
-			node *last = head;
+			node* last = head;
 			auto it = pairs.begin();
 			for (++it; it != pairs.end(); ++it) {
 				while (last && (*last)->second > (*it).second)
@@ -40,8 +40,8 @@ public:
 	~treap() {
 		delete head;
 	}
-	void push(const std::pair<Key, Prior> &pair) {
-		node **last_b = &head, *last = nullptr, *cur = head;
+	void push(const std::pair<Key, Prior>& pair) {
+		node** last_b = &head, * last = nullptr, * cur = head;
 		while (cur && (*cur)->second <= pair.second) {
 			last = cur;
 			if ((*cur)->first < pair.first) {
@@ -56,39 +56,47 @@ public:
 		auto p = split(cur, pair.first);
 		*last_b = new node(pair.first, pair.second, p.first, p.second, last);
 	}
+	void print() {
+		node nod = node((Key)1, (Prior)2);
+		std::cout << nod;
+	}
 private:
 	class node {
 	public:
-		node *left, *right, *ancestor;
+		node* left, * right, * ancestor;
 	private:
 		std::pair<Key, Prior> kern;
 	public:
-		node(const Key &x, const Prior &y) : kern(std::make_pair(x, y)),
+		node(const Key& x, const Prior& y) : kern(std::make_pair(x, y)),
 			left(nullptr), right(nullptr) {}
-		node(const Key &x, const Prior &y,
-			node *left, node *right) :
-			kern(std::make_pair(x, y)), 
+		node(const Key& x, const Prior& y,
+			node* left, node* right) :
+			kern(std::make_pair(x, y)),
 			left(left), right(right), ancestor(nullptr) {}
-		node(const Key &x, const Prior &y,
-			node *left, node *right, node *ancestor) :
+		node(const Key& x, const Prior& y,
+			node* left, node* right, node* ancestor) :
 			kern(std::make_pair(x, y)),
 			left(left), right(right), ancestor(ancestor) {}
 		~node() {
 			delete left;
 			delete right;
 		}
-		const decltype(kern) *operator->() const { return &kern; }
-		const decltype(kern) &operator*() const { return kern; }
+		const decltype(kern)* operator->() const { return &kern; }
+		const decltype(kern)& operator*() const { return kern; }
 
-		void print(std::ostream &out) {
+		void print(std::ostream& out) {
 			out << "(" << kern.first << ", " << kern.second << ")";
 		}
 	};
+	
+	friend std::ostream& operator <<(std::ostream& out, const node& nod) {
+		return out << "(" << (*nod).first << ", " << (*nod).second << ")";
+	}
+	
+	node* head = nullptr;
 
-	node *head = nullptr;
-
-	void display(std::ostream &out, node *it,
-		bool isr, std::string &&fmt) const {
+	void display(std::ostream& out, node* it,
+		bool isr, std::string&& fmt) const {
 		if (!it)
 			return;
 		out << fmt;
@@ -105,7 +113,7 @@ private:
 		}
 	}
 
-	const std::pair<node *, node *> split(node *v, Key c) {
+	const std::pair<node*, node*> split(node* v, Key c) {
 		if (!v)
 			return std::make_pair(nullptr, nullptr);
 		if ((*v)->first > c) {
@@ -120,21 +128,22 @@ private:
 		}
 	}
 
-	template <char c> void bind(node *anc, node *child) {};
-	template <> void bind<'l'>(node *anc, node *child) {
+	template <char c> void bind(node* anc, node* child) {};
+	template <> void bind<'l'>(node* anc, node* child) {
 		anc->left = child;
 		if (child) child->ancestor = anc;
 	};
-	template <> void bind<'r'>(node *anc, node *child) {
+	template <> void bind<'r'>(node* anc, node* child) {
 		anc->right = child;
 		if (child) child->ancestor = anc;
 	};
 };
 
 template <typename Key, typename Prior>
-std::ostream &operator<<(std::ostream &out, const treap<Key, Prior> &tr) {
+std::ostream& operator<<(std::ostream& out, const treap<Key, Prior>& tr) {
 	setlocale(LC_ALL, "Russian_Russia.20866");
 	if (tr.head)
 		tr.display(out, tr.head, false, std::string(""));
 	return out;
 }
+

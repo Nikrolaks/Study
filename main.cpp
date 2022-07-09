@@ -19,13 +19,14 @@ int main() {
 		std::make_pair(3, gen()),
 	};
 	treap<int, decltype(gen())> t(v);
-	cout << "Before:\n" << t << std::endl;
-	t.push(std::make_pair(0, gen()));
-	cout << "Add 0:\n" << t << std::endl;
-	t.push(std::make_pair(4, gen()));
-	cout << "Add 4:\n" << t << std::endl;
-	t.push(std::make_pair(5, gen()));
-	cout << "Add 5:\n" << t << std::endl;
-	t.push(std::make_pair(6, gen()));
-	cout << "Add 6:\n" << t << std::endl;
+	//cout << "Before:\n" << t << std::endl;
+	//t.push(std::make_pair(0, gen()));
+	//cout << "Add 0:\n" << t << std::endl;
+	//t.push(std::make_pair(4, gen()));
+	//cout << "Add 4:\n" << t << std::endl;
+	//t.push(std::make_pair(5, gen()));
+	//cout << "Add 5:\n" << t << std::endl;
+	//t.push(std::make_pair(6, gen()));
+	//cout << "Add 6:\n" << t << std::endl;
+	t.print();
 }
