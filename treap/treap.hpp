@@ -5,7 +5,6 @@
 #include <clocale>
 #include <string>
 #include <algorithm>
-#include <typeinfo>
 
 #include "../utils.hpp"
 
@@ -44,7 +43,7 @@ public:
 		node **last_b = &head, *last = nullptr, *cur = head;
 		while (cur && (*cur)->second <= pair.second) {
 			last = cur;
-			if ((*cur)->first < pair.first) {
+			if ((*cur)->first > pair.first) {
 				last_b = &(cur->left);
 				cur = cur->left;
 			}
@@ -56,6 +55,28 @@ public:
 		auto p = split(cur, pair.first);
 		*last_b = new node(pair.first, pair.second, p.first, p.second, last);
 	}
+	void pop(const Key &elem) {
+		node **last_b = &head, *last = nullptr, *cur = head;
+		while (cur && (*cur)->first != elem) {
+			last = cur;
+			if ((*cur)->first > elem) {
+				last_b = &(cur->left);
+				cur = cur->left;
+			}
+			else {
+				last_b = &(cur->right);
+				cur = cur->right;
+			}
+		}
+		if (cur) {
+			*last_b = merge(cur->left, cur->right);
+			if (*last_b) (*last_b)->ancestor = last;
+			cur->left = cur->right = nullptr;
+			delete cur;
+		}
+	}
+
+	void join(treap &oth) { head = cool_merge(head, oth.head); }
 private:
 	class node {
 	public:
@@ -73,10 +94,8 @@ private:
 			node *left, node *right, node *ancestor) :
 			kern(std::make_pair(x, y)),
 			left(left), right(right), ancestor(ancestor) {}
-		~node() {
-			delete left;
-			delete right;
-		}
+		~node();
+
 		const decltype(kern) *operator->() const { return &kern; }
 		const decltype(kern) &operator*() const { return kern; }
 
@@ -105,27 +124,54 @@ private:
 		}
 	}
 
-	const std::pair<node *, node *> split(node *v, Key c) {
+	inline static const std::pair<node *, node *> split(node *v, Key c) {
 		if (!v)
 			return std::make_pair(nullptr, nullptr);
 		if ((*v)->first > c) {
-			auto p(split(v->right, c));
-			bind<'r'>(v, p.first);
-			return std::make_pair(v, p.second);
-		}
-		else {
 			auto p(split(v->left, c));
 			bind<'l'>(v, p.second);
 			return std::make_pair(p.first, v);
 		}
+		else {
+			auto p(split(v->right, c));
+			bind<'r'>(v, p.first);
+			return std::make_pair(v, p.second);
+		}
 	}
 
-	template <char c> void bind(node *anc, node *child) {};
-	template <> void bind<'l'>(node *anc, node *child) {
+	inline static node *merge(node *f, node *s) {
+		if (!f || !s)
+			return reinterpret_cast<node *>((std::size_t)f + (std::size_t)s);
+		if ((*f)->second < (*s)->second) {
+			bind<'r'>(f, merge(f->right, s));
+			return f;
+		}
+		else {
+			bind<'l'>(s, merge(f, s->left));
+			return s;
+		}
+	}
+
+	inline static node *cool_merge(node *f, node *s) {
+		if (!f || !s)
+			return reinterpret_cast<node *>((std::size_t)f + (std::size_t)s);
+
+		bool flag = (*f)->second < (*s)->second;
+		node *max = flag ? f : s, *min = flag ? s : f;
+
+		auto p = split(min, (*max)->first);
+		bind<'l'>(max, cool_merge(max->left, p.first));
+		bind<'r'>(max, cool_merge(max->right, p.second));
+
+		return max;
+	}
+
+	template <char c> inline static void bind(node *anc, node *child) {};
+	template <> inline static void bind<'l'>(node *anc, node *child) {
 		anc->left = child;
 		if (child) child->ancestor = anc;
 	};
-	template <> void bind<'r'>(node *anc, node *child) {
+	template <> inline static void bind<'r'>(node *anc, node *child) {
 		anc->right = child;
 		if (child) child->ancestor = anc;
 	};
@@ -137,4 +183,11 @@ std::ostream &operator<<(std::ostream &out, const treap<Key, Prior> &tr) {
 	if (tr.head)
 		tr.display(out, tr.head, false, std::string(""));
 	return out;
+}
+
+//special for Gray *>*
+template <typename Key, typename Prior>
+treap<Key, Prior>::node::~node() {
+	delete left;
+	delete right;
 }

@@ -14,18 +14,16 @@ int main() {
 	std::random_device gen;
 	
 	std::vector<std::pair<int, decltype(gen())>> v = {
-		std::make_pair(1, gen()),
-		std::make_pair(2, gen()),
-		std::make_pair(3, gen()),
+		std::make_pair(1, 1),
+		std::make_pair(2, 100500),
+		std::make_pair(3, 7),
 	};
-	treap<int, decltype(gen())> t(v);
-	cout << "Before:\n" << t << std::endl;
-	t.push(std::make_pair(0, gen()));
-	cout << "Add 0:\n" << t << std::endl;
-	t.push(std::make_pair(4, gen()));
-	cout << "Add 4:\n" << t << std::endl;
-	t.push(std::make_pair(5, gen()));
-	cout << "Add 5:\n" << t << std::endl;
-	t.push(std::make_pair(6, gen()));
-	cout << "Add 6:\n" << t << std::endl;
+	treap<int, decltype(gen())> t(v), r;
+	r.push(std::make_pair(0, 12));
+	r.push(std::make_pair(-4, -13));
+	r.push(std::make_pair(5, 120));
+	r.push(std::make_pair(-6, 1111));
+	cout << "Before join:\n" << t << endl << r << endl;
+	t.join(r);
+	cout << "After join:\n" << t << endl;
 }
