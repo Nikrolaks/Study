@@ -5,6 +5,7 @@
 #include <clocale>
 #include <string>
 #include <algorithm>
+#include <random>
 
 #include "../utils.hpp"
 
@@ -191,3 +192,28 @@ treap<Key, Prior>::node::~node() {
 	delete left;
 	delete right;
 }
+
+template <typename Key>
+class int_treap : public treap<Key, decltype(std::random_device()())> {
+public:
+	int_treap() {}
+	int_treap(const std::vector<Key> &vec) {
+		std::vector<std::pair<Key, decltype(gen())>> pairs;
+		pairs.resize(vec.size());
+		auto it = vec.cbegin();
+		std::generate(pairs.begin(), pairs.end(), [&]() {
+			return std::make_pair(*it++, gen());
+		});
+		// Say thanks to compiler that
+		// can't see parent with instantiated template
+		// constructor and methods 
+		new (dynamic_cast<treap<Key, decltype(std::random_device()())> *>(this)) 
+			treap<Key, decltype(std::random_device()())>(pairs);
+	}
+
+	void push(const Key &elem) {
+		dynamic_cast<treap<Key, decltype(std::random_device()())> *>(this)->push(std::make_pair(elem, gen()));
+	}
+private:
+	std::random_device gen;
+};

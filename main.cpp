@@ -11,19 +11,12 @@ using namespace std;
 
 
 int main() {
-	std::random_device gen;
-	
-	std::vector<std::pair<int, decltype(gen())>> v = {
-		std::make_pair(1, 1),
-		std::make_pair(2, 100500),
-		std::make_pair(3, 7),
-	};
-	treap<int, decltype(gen())> t(v), r;
-	r.push(std::make_pair(0, 12));
-	r.push(std::make_pair(-4, -13));
-	r.push(std::make_pair(5, 120));
-	r.push(std::make_pair(-6, 1111));
-	cout << "Before join:\n" << t << endl << r << endl;
+	int_treap<int>
+		t({1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}),
+		r({ -1, -2, -3, 114, -5, -6, 17, -8, -9, -10, 111, -12, -13, -14 });
+	cout << t << endl << r << endl;
 	t.join(r);
-	cout << "After join:\n" << t << endl;
+	cout << t << endl;
+	t.push(1212);
+	cout << t << endl;
 }
