@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#include "../utils.hpp"
+#include "../utils/utils.hpp"
 
 template <typename T>
 void selection_sort(std::vector<T> &mas, bool quiet) {
