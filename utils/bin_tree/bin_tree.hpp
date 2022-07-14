@@ -8,26 +8,28 @@
 
 #include "bin_tree_def.hpp"
 
-template <typename Key, typename NodeKern>
-class bin_tree<Key, NodeKern>::node {
+template <typename Key, typename Additional, typename Data>
+class bin_tree<Key, Additional, Data>::node {
 public:
 	node *left, *right, *ancestor;
 private:
-	std::pair<Key, NodeKern> kern;
+	utils::triple<Key, Additional, Data> kern;
 public:
-	node(const Key &x, const NodeKern &y) : kern(std::make_pair(x, y)),
+	node(const Key &x, const Additional &y, const Data &z) : 
+		kern(utils::make_triple(x, y, z)),
 		left(nullptr), right(nullptr), ancestor(nullptr) {}
-	node(const Key &x, const NodeKern &y, node *ancestor) :
-		kern(std::make_pair(x, y)),
+	node(const Key &x, const Additional &y, const Data &z,
+		node *ancestor) :
+		kern(utils::make_triple(x, y, z)),
 		left(nullptr), right(nullptr),
 		ancestor(ancestor) {}
-	node(const Key &x, const NodeKern &y,
+	node(const Key &x, const Additional &y, const Data &z,
 		node *left, node *right) :
-		kern(std::make_pair(x, y)),
+		kern(utils::make_triple(x, y, z)),
 		left(left), right(right), ancestor(nullptr) {}
-	node(const Key &x, const NodeKern &y,
+	node(const Key &x, const Additional &y, const Data &z,
 		node *left, node *right, node *ancestor) :
-		kern(std::make_pair(x, y)),
+		kern(utils::make_triple(x, y, z)),
 		left(left), right(right), ancestor(ancestor) {}
 	~node() {
 		delete left;
@@ -38,86 +40,145 @@ public:
 	const decltype(kern) &operator*() const { return kern; }
 
 	void print(std::ostream &out) {
-		out << "(" << kern.first << ", " << kern.second << ")";
+		out << "[" << kern.first << " (" << kern.second << ")] = " << kern.third;
 	}
 };
 
-template <typename Key, typename NodeKern>
-typename bin_tree<Key, NodeKern>::node *bin_tree<Key, NodeKern>::build_tree(
-	const std::vector<std::pair<Key, NodeKern>> &pairs,
+template <typename Key, typename Additional, typename Data>
+typename bin_tree<Key, Additional, Data>::node *
+	bin_tree<Key, Additional, Data>::build_tree(
+	const std::vector<
+		utils::triple<Key, Additional, Data>> &nodes,
 	std::size_t left, std::size_t right) {
 	if (left >= right) {
 		return nullptr;
 	}
 	std::size_t mid = (left + right) >> 1;
-	node *res = new node(pairs[mid].first, pairs[mid].second);
-	bind<'l'>(res, build_tree(pairs, left, mid));
-	bind<'r'>(res, build_tree(pairs, mid + 1, right));
+	node *res = new node(nodes[mid].first, nodes[mid].second, nodes[mid].third);
+	bind<'l'>(res, build_tree(nodes, left, mid));
+	bind<'r'>(res, build_tree(nodes, mid + 1, right));
 	return res;
 }
 
-template <typename Key, typename NodeKern>
-bin_tree<Key, NodeKern>::bin_tree(std::vector<std::pair<Key, NodeKern>> &pairs) {
-	std::sort(pairs.begin(), pairs.end(), 
-		[](decltype(**head) f, decltype(**head) s) {
-		return f.first < s.first; });
-	head = build_tree(pairs, 0, pairs.size());
+template <typename Key, typename Additional, typename Data>
+bin_tree<Key, Additional, Data>::bin_tree(
+	std::vector<utils::triple<Key, Additional, Data>> &nodes) {
+	std::sort(nodes.begin(), nodes.end(), 
+		[](const decltype(nodes[0]) &f,
+			const decltype(nodes[0]) &s) {
+		return f.first < s.first;
+	});
+	head = build_tree(nodes, 0, nodes.size());
 }
 
-template <typename Key, typename NodeKern>
-typename bin_tree<Key, NodeKern>::node **bin_tree<Key, NodeKern>::find(
+//
+//
+// find realization
+//
+//
+
+template <typename Key, typename Additional, typename Data>
+typename bin_tree<Key, Additional, Data>::node **
+	bin_tree<Key, Additional, Data>::find(
 	const Key &k, node **cur) const {
-	if (*cur) {
-		if ((**cur)->first > k)
-			return find(k, &((*cur)->left));
-		else if ((**cur)->first < k)
-			return find(k, &((*cur)->right));
-	}
+	if (*cur && do_find_step(k, *cur, cur))
+		return find(k, cur);
 	return cur;
 }
 
-template <typename Key, typename NodeKern>
-const std::pair<typename bin_tree<Key, NodeKern>::node **, bool> &
-	bin_tree<Key, NodeKern>::find(
+template <typename Key, typename Additional, typename Data>
+const std::pair<
+	typename bin_tree<Key, Additional, Data>::node **,
+	bool> &
+		bin_tree<Key, Additional, Data>::find(
 		const Key &k, node **cur, bool side) const {
-	if (*cur) {
-		if ((**cur)->first > k)
-			return find(k, &((*cur)->left), false);
-		if ((**cur)->first < k)
-			return find(k, &((*cur)->right), true);
-	}
+	if (*cur && do_find_step(k, *cur, side, cur))
+			return find(k, cur, side);
 	return std::move(std::make_pair(cur, side));
 }
 
-template <typename Key, typename NodeKern>
-const std::pair<typename bin_tree<Key, NodeKern>::node *, 
-				std::pair<
-					typename bin_tree<Key, NodeKern>::node **, 
-					typename bin_tree<Key, NodeKern>::node *>> &
-bin_tree<Key, NodeKern>::find(
-	const Key &k, node **last_b, node *last, node *cur) const {
-	if (cur) {
-		if ((*cur)->first > k)
-			return find(k, &(cur->left), cur, cur->left);
-		if ((*cur)->first < k)
-			return find(k, &(cur->right), cur, cur->right);
-	}
-	return std::move(std::make_pair(cur, std::make_pair(last_b, last)));
+template <typename Key, typename Additional, typename Data>
+const std::pair<
+	typename bin_tree<Key, Additional, Data>::node *, 
+	std::pair<
+		typename bin_tree<Key, Additional, Data>::node **, 
+		typename bin_tree<Key, Additional, Data>::node *>> &
+			bin_tree<Key, Additional, Data>::find(
+				const Key &k,
+				node **last_b,
+				node *last,
+				node **cur) const {
+	if (*cur && do_find_step(k, *cur, last_b, last, cur))
+		return find(k, last_b, last, cur);
+	return std::move(std::make_pair(*cur, std::make_pair(last_b, last)));
 }
 
-template <typename Key, typename NodeKern>
-void bin_tree<Key, NodeKern>::push(const std::pair<Key, NodeKern> &pair) {
-	auto ppos = find(pair.first, &head, false);
+//
+// find with detecting throw additional data
+//
+
+template <typename Key, typename Additional, typename Data>
+template <class TFunc>
+typename bin_tree<Key, Additional, Data>::node **
+	bin_tree<Key, Additional, Data>::find(
+		const Key &k, node **cur, TFunc detect) const {
+	if (*cur && detect((**cur)->second) && do_find_step(k, *cur, cur))
+		return find(k, cur);
+	return cur;
+}
+
+template <typename Key, typename Additional, typename Data>
+template <class TFunc>
+const std::pair<
+	typename bin_tree<Key, Additional, Data>::node **,
+	bool> &
+		bin_tree<Key, Additional, Data>::find(
+			const Key &k,
+			node **cur,
+			bool side,
+			TFunc detect) const {
+	if (*cur && detect((**cur)->second) && do_find_step(k, *cur, side, cur))
+		return find(k, cur, side, detect);
+	return cur;
+}
+
+template <typename Key, typename Additional, typename Data>
+template <class TFunc>
+const std::pair<
+	typename bin_tree<Key, Additional, Data>::node *,
+	std::pair<
+		typename bin_tree<Key, Additional, Data>::node **,
+		typename bin_tree<Key, Additional, Data>::node *>> &
+			bin_tree<Key, Additional, Data>::find(
+				const Key &k, node **last_b,
+				node *last, node **cur,
+				TFunc detect) const {
+	if (*cur && detect((**cur)->second) && do_find_step(k, *cur, last_b, last, cur))
+		return find(k, last_b, last, cur);
+	return std::move(std::make_pair(*cur, std::make_pair(last_b, last)));
+}
+
+//
+//
+// end of find realization
+//
+//
+
+template <typename Key, typename Additional, typename Data>
+void bin_tree<Key, Additional, Data>::push(
+	const utils::triple<Key, Additional, Data> &node) {
+	auto ppos = find(node.first, &head, false);
 	if (*(ppos.first))
 		return;
 	bind(
 		find_ancestor(ppos.first, ppos.second),
-		new node(pair.first, pair.second),
+		new bin_tree<Key, Additional, Data>::node(
+			node.first, node.second, node.third),
 		ppos.second);
 }
 
-template <typename Key, typename NodeKern>
-void bin_tree<Key, NodeKern>::pop(const Key &elem) {
+template <typename Key, typename Additional, typename Data>
+void bin_tree<Key, Additional, Data>::pop(const Key &elem) {
 	auto pret = find(elem, &head, false);
 	if (*(pret.first)) {
 		node **pos = find(elem, &((*(pret.first))->left));
@@ -155,8 +216,8 @@ void bin_tree<Key, NodeKern>::pop(const Key &elem) {
 	}
 }
 
-template <typename Key, typename NodeKern>
-void bin_tree<Key, NodeKern>::display(std::ostream &out, node *it,
+template <typename Key, typename Additional, typename Data>
+void bin_tree<Key, Additional, Data>::display(std::ostream &out, node *it,
 	bool isr, std::string &&fmt) const {
 	if (!it)
 		return;
@@ -174,11 +235,12 @@ void bin_tree<Key, NodeKern>::display(std::ostream &out, node *it,
 	}
 }
 
-template <typename Key, typename NodeKern>
-const std::pair<typename bin_tree<Key, NodeKern>::node *,
-	typename bin_tree<Key, NodeKern>::node *>
-	bin_tree<Key, NodeKern>::split(
-		typename bin_tree<Key, NodeKern>::node *v, Key c) {
+template <typename Key, typename Additional, typename Data>
+const std::pair<
+	typename bin_tree<Key, Additional, Data>::node *,
+	typename bin_tree<Key, Additional, Data>::node *>
+	bin_tree<Key, Additional, Data>::split(
+		typename bin_tree<Key, Additional, Data>::node *v, Key c) {
 	if (!v)
 		return std::make_pair(nullptr, nullptr);
 	if ((*v)->first > c) {
