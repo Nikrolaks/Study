@@ -18,10 +18,10 @@ public:
 	void pop(const Key &elem) override;
 
 	void join(treap &oth) { 
-		bin_tree<Key, Prior>::head = 
-			cool_merge(
+		bin_tree<Key, Prior>::head = cool_merge(
 				bin_tree<Key, Prior>::head,
-				oth.head); }
+				oth.head);
+	}
 private:
 	inline static typename bin_tree<Key, Prior>::node *merge(
 		typename bin_tree<Key, Prior>::node *f,
@@ -52,7 +52,10 @@ public:
 	}
 
 	void push(const Key &elem) {
-		dynamic_cast<treap<Key, decltype(std::random_device()())> *>(this)->push(std::make_pair(elem, gen()));
+		dynamic_cast<
+			treap<Key, 
+			decltype(std::random_device()())> *>(this)->push(
+				std::make_pair(elem, gen()));
 	}
 private:
 	std::random_device gen;

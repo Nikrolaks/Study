@@ -31,6 +31,8 @@ protected:
 
 	const std::pair<node **, bool> &
 		find(const Key &k, node **cur, bool side) const;
+	const std::pair<node *, std::pair<node **, node *>> &
+		find(const Key &k, node **last_b, node *last, node *cur) const;
 	node **find(const Key &k, node **cur) const;
 
 	template <char c> inline static void bind(node *anc, node *child) {}
@@ -76,3 +78,23 @@ std::ostream &operator<<(std::ostream &out, const bin_tree<Key, Prior> &tr) {
 		tr.display(out, tr.head, false, std::string(""));
 	return out;
 }
+
+template<typename Key>
+class simple_tree : public bin_tree<Key, bool> {
+public:
+	simple_tree() {}
+	simple_tree(const std::vector<Key> &elems) {
+		std::vector<std::pair<Key, bool>> to_init(elems.size());
+		auto it = elems.cbegin();
+		std::generate(to_init.begin(), to_init.end(),
+			[&it]() { return std::make_pair(*it++, true); });
+		new (dynamic_cast<bin_tree<Key, bool> *>(this))
+			bin_tree<Key, bool>(to_init);
+	}
+
+	void push(const Key &elem) {
+		dynamic_cast<
+			bin_tree<Key, bool> *>(this)->push(
+				std::make_pair(elem, true));
+	}
+};

@@ -58,7 +58,8 @@ typename bin_tree<Key, NodeKern>::node *bin_tree<Key, NodeKern>::build_tree(
 
 template <typename Key, typename NodeKern>
 bin_tree<Key, NodeKern>::bin_tree(std::vector<std::pair<Key, NodeKern>> &pairs) {
-	std::sort(pairs.begin(), pairs.end(), [](decltype(**head) f, decltype(**head) s) {
+	std::sort(pairs.begin(), pairs.end(), 
+		[](decltype(**head) f, decltype(**head) s) {
 		return f.first < s.first; });
 	head = build_tree(pairs, 0, pairs.size());
 }
@@ -86,6 +87,22 @@ const std::pair<typename bin_tree<Key, NodeKern>::node **, bool> &
 			return find(k, &((*cur)->right), true);
 	}
 	return std::move(std::make_pair(cur, side));
+}
+
+template <typename Key, typename NodeKern>
+const std::pair<typename bin_tree<Key, NodeKern>::node *, 
+				std::pair<
+					typename bin_tree<Key, NodeKern>::node **, 
+					typename bin_tree<Key, NodeKern>::node *>> &
+bin_tree<Key, NodeKern>::find(
+	const Key &k, node **last_b, node *last, node *cur) const {
+	if (cur) {
+		if ((*cur)->first > k)
+			return find(k, &(cur->left), cur, cur->left);
+		if ((*cur)->first < k)
+			return find(k, &(cur->right), cur, cur->right);
+	}
+	return std::move(std::make_pair(cur, std::make_pair(last_b, last)));
 }
 
 template <typename Key, typename NodeKern>
