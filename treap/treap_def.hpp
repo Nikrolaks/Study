@@ -34,31 +34,34 @@ private:
 
 
 template <typename Key, typename Data>
-class int_treap : public treap<Key, decltype(std::random_device()()), Data> {
+class int_treap : public treap<Key, utils::cool_int, Data> {
 public:
 	int_treap() = default;
 	int_treap(const std::vector<std::pair<Key, Data>> &vec) {
-		std::vector<utils::triple<Key, decltype(gen()), Data>> nodes;
+		gen.seed(143214);
+		std::vector<utils::triple<Key, utils::cool_int, Data>> nodes;
 		nodes.resize(vec.size());
 		auto it = vec.cbegin();
 		std::generate(nodes.begin(), nodes.end(), [&]() {
-			auto to_ret = utils::make_triple((*it).first, gen(), (*it).second);
+			auto to_ret = utils::make_triple(
+				(*it).first, utils::cool_int(gen()), (*it).second);
 			it++;
 			return to_ret;
 		});
-		new (dynamic_cast<treap<Key, decltype(std::random_device()()), Data> *>(this)) 
-			treap<Key, decltype(std::random_device()()), Data>(nodes);
+		new (dynamic_cast<treap<Key, utils::cool_int, Data> *>(this))
+			treap<Key, utils::cool_int, Data>(nodes);
 	}
 
-	void push(const Key &elem, const Data &d) {
+	void push(const std::pair<Key, Data> &node) override {
 		dynamic_cast<
 			treap<Key, 
-			decltype(std::random_device()()),
+			utils::cool_int,
 			Data> *>(this)->push(
-				utils::make_triple(elem, gen(), d));
+				utils::make_triple(
+					node.first, utils::cool_int(gen()), node.second));
 	}
 private:
-	std::random_device gen;
+	std::default_random_engine gen;
 };
 
 template <typename Key>

@@ -12,8 +12,8 @@
  ~ Binary tree ~
  Requirements:
 	> Key - comparable
-	> Additional - default constructable (?)
-	> Data - any
+	> Additional - copyable
+	> Data - copyable
  */
 template<typename Key, typename Additional, typename Data>
 class bin_tree {
@@ -27,9 +27,24 @@ public:
 		delete head;
 	}
 	virtual void push(const utils::triple<Key, Additional, Data> &node);
+	// Requirements:
+	//    > Additional - default constructable
+	virtual void push(const std::pair<Key, Data> &node) {
+		push(utils::make_triple(node.first, Additional(), node.second));
+	}
 	virtual void pop(const Key &elem);
 
-	const Data &operator[](const Key &k) { return (**find(k, &head))->third; }
+	// Requirements:
+	//    > Data - default constructable
+	virtual Data &operator[](const Key &k) {
+		auto r = *find(k, &head);
+		if (r)
+			return (*r)->third;
+		else {
+			push(std::make_pair(k, Data()));
+			return (**find(k, &head))->third;
+		}
+	}
 protected:
 	class node;
 
@@ -95,7 +110,8 @@ private:
 		utils::triple<Key, Additional, Data>> &nodes,
 		std::size_t left, std::size_t right);
 	void display(std::ostream &out, node *it,
-		bool isr, std::string &&fmt) const;
+		bool isr, std::string &&fmt,
+		utils::cool_int deep) const;
 
 	//
 	//
@@ -163,7 +179,7 @@ template <typename Key, typename Additional, typename Data>
 std::ostream &operator<<(std::ostream &out, const bin_tree<Key, Additional, Data> &tr) {
 	setlocale(LC_ALL, "Russian_Russia.20866");
 	if (tr.head)
-		tr.display(out, tr.head, false, std::string(""));
+		tr.display(out, tr.head, false, std::string(""), 0);
 	return out;
 }
 

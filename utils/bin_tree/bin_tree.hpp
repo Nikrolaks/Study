@@ -36,11 +36,16 @@ public:
 		delete right;
 	}
 
-	const decltype(kern) *operator->() const { return &kern; }
-	const decltype(kern) &operator*() const { return kern; }
+	decltype(kern) *operator->() { return &kern; }
+	decltype(kern) &operator*() { return kern; }
 
 	void print(std::ostream &out) {
-		out << "[" << kern.first << " (" << kern.second << ")] = " << kern.third;
+		out << "[" << kern.first << " (" << kern.second << ")] = " << 
+			kern.third;
+	}
+
+	void print_emblem(std::ostream &out) {
+		out << "[" << char(148) << "]";
 	}
 };
 
@@ -81,8 +86,7 @@ template <typename Key, typename Additional, typename Data>
 typename bin_tree<Key, Additional, Data>::node **
 	bin_tree<Key, Additional, Data>::find(
 	const Key &k, node **cur) const {
-	if (*cur && do_find_step(k, *cur, cur))
-		return find(k, cur);
+	while (*cur && do_find_step(k, *cur, cur));
 	return cur;
 }
 
@@ -92,8 +96,7 @@ const std::pair<
 	bool> &
 		bin_tree<Key, Additional, Data>::find(
 		const Key &k, node **cur, bool side) const {
-	if (*cur && do_find_step(k, *cur, side, cur))
-			return find(k, cur, side);
+	while (*cur && do_find_step(k, *cur, side, cur));
 	return std::move(std::make_pair(cur, side));
 }
 
@@ -108,8 +111,7 @@ const std::pair<
 				node **last_b,
 				node *last,
 				node **cur) const {
-	if (*cur && do_find_step(k, *cur, last_b, last, cur))
-		return find(k, last_b, last, cur);
+	while (*cur && do_find_step(k, *cur, last_b, last, cur)) ;
 	return std::move(std::make_pair(*cur, std::make_pair(last_b, last)));
 }
 
@@ -122,8 +124,7 @@ template <class TFunc>
 typename bin_tree<Key, Additional, Data>::node **
 	bin_tree<Key, Additional, Data>::find(
 		const Key &k, node **cur, TFunc detect) const {
-	if (*cur && detect((**cur)->second) && do_find_step(k, *cur, cur))
-		return find(k, cur);
+	while (*cur && detect((**cur)->second) && do_find_step(k, *cur, cur)) ;
 	return cur;
 }
 
@@ -137,8 +138,7 @@ const std::pair<
 			node **cur,
 			bool side,
 			TFunc detect) const {
-	if (*cur && detect((**cur)->second) && do_find_step(k, *cur, side, cur))
-		return find(k, cur, side, detect);
+	while (*cur && detect((**cur)->second) && do_find_step(k, *cur, side, cur)) ;
 	return cur;
 }
 
@@ -153,8 +153,8 @@ const std::pair<
 				const Key &k, node **last_b,
 				node *last, node **cur,
 				TFunc detect) const {
-	if (*cur && detect((**cur)->second) && do_find_step(k, *cur, last_b, last, cur))
-		return find(k, last_b, last, cur);
+	while (*cur && detect((**cur)->second) &&
+		do_find_step(k, *cur, last_b, last, cur)) ;
 	return std::move(std::make_pair(*cur, std::make_pair(last_b, last)));
 }
 
@@ -217,25 +217,6 @@ void bin_tree<Key, Additional, Data>::pop(const Key &elem) {
 }
 
 template <typename Key, typename Additional, typename Data>
-void bin_tree<Key, Additional, Data>::display(std::ostream &out, node *it,
-	bool isr, std::string &&fmt) const {
-	if (!it)
-		return;
-	out << fmt;
-	out << (isr ? char(134) : char(132)) << " ";
-	it->print(out);
-	out << std::endl;
-	if (it->left || it->right) {
-		fmt.push_back((isr ? char(129) : ' '));
-		fmt.push_back(' ');
-		display(out, it->right, it->left, std::move(fmt));
-		display(out, it->left, false, std::move(fmt));
-		fmt.pop_back();
-		fmt.pop_back();
-	}
-}
-
-template <typename Key, typename Additional, typename Data>
 const std::pair<
 	typename bin_tree<Key, Additional, Data>::node *,
 	typename bin_tree<Key, Additional, Data>::node *>
@@ -252,5 +233,24 @@ const std::pair<
 		auto p(split(v->right, c));
 		bind<'r'>(v, p.first);
 		return std::make_pair(v, p.second);
+	}
+}
+
+template <typename Key, typename Additional, typename Data>
+void bin_tree<Key, Additional, Data>::display(std::ostream &out, node *it,
+	bool isr, std::string &&fmt, utils::cool_int deep) const {
+	if (!it)
+		return;
+	out << char(135) << deep.x << char(134) << fmt;
+	out << (isr ? char(134) : char(132)) << " ";
+	it->print(out);
+	out << std::endl;
+	if (it->left || it->right) {
+		fmt.push_back((isr ? char(129) : ' '));
+		fmt.push_back(' ');
+		display(out, it->right, it->left, std::move(fmt), deep + 1);
+		display(out, it->left, false, std::move(fmt), deep + 1);
+		fmt.pop_back();
+		fmt.pop_back();
 	}
 }
