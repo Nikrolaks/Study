@@ -1,0 +1,83 @@
+\documentclass[b5paper]{article}
+\usepackage{amsfonts}
+\usepackage[unicode, pdftex]{hyperref}
+\usepackage{amssymb}
+\usepackage{mathtext}
+\usepackage{stackrel}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath}
+\usepackage[usenames]{color}
+\usepackage[dvipsnames]{xcolor}
+\pagestyle{empty}
+\usepackage{latexsym}
+\usepackage{floatrow}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\graphicspath{{pictures/}}
+\DeclareGraphicsExtensions{.png}
+\renewcommand{\baselinestretch}{1.45}
+\usepackage[most]{tcolorbox}
+\definecolor{block-gray}{gray}{0.90} % уровень прозрачности (1 - максимум)
+\newtcolorbox{myquote}{colback=block-gray,boxrule=0pt,boxsep=0pt,breakable}
+
+\newcommand{\Blue}[1]{\textit{\textbf{\textcolor{TealBlue}{#1}}}}
+\newcommand{\blue}[1]{\textit{\textbf{\textcolor{CornflowerBlue}{#1}}}}
+\newcommand{\purp}[1]{\textit{\textbf{\textcolor{Thistle}{#1}}}}
+\newcommand{\orange}[1]{\textit{\textbf{\textcolor{Salmon}{#1}}}}
+\newcommand{\Clay}[1]{\textit{\textbf{\textcolor{Tan}{#1}}}}
+\newcommand{\Green}[1]{\textit{\textbf{\textcolor{OliveGreen}{#1}}}}
+\newcommand{\green}[1]{\textit{\textbf{\textcolor{Green}{#1}}}}
+\newcommand{\Seagreen}[1]{\textit{\textbf{\textcolor{SeaGreen}{#1}}}}
+\newcommand{\Magenta}[1]{\textit{\textbf{\textcolor{WildStrawberry}{#1}}}}
+\newcommand{\magenta}[1]{\textit{\textbf{\textcolor{magenta}{#1}}}}
+
+\usepackage{nameref}
+\makeatletter
+\newcommand*{\currentname}{\@currentlabelname}
+\makeatother
+
+\usepackage{fancybox,fancyhdr}
+\usepackage{lastpage}
+\fancyhead[R]{}
+\fancyhead[L]{\includegraphics[scale=0.15]{emblem.png}}
+%\fancyhead[C]{\vspace*{3mm} --- \textbf{Теория вероятностей} --- \vspace*{7mm}} - вставлять соответствующую в свой проект
+\fancyfoot[R]{\currentname}
+\fancyfoot[L]{Страница \thepage \; из \pageref{LastPage}}
+\fancyfoot[C]{}
+
+\usepackage{layout}
+\hoffset-50pt
+\voffset-75pt
+\textwidth450pt
+\textheight550pt
+\footskip17pt
+\headheight61pt
+
+\fancyhead[C]{\vspace*{3mm} --- \textbf{Алгоритмы} --- \vspace*{7mm}}
+
+\title{Алгоритмы}
+\author{Софья Копейкина}
+\date{Август 2022}
+
+\begin{document}
+\setlength{\parindent}{0pt}
+\pagestyle{fancy}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Сортировки}
+\subsection{Сортировки с асимптотикой O($n^2$)}
+\subsubsection{Сортировка выбором (selection sort)}
+\subsubsection{Сортировка вставками (insertion sort)}
+\subsection{Сортировки с асимптотикой O($nlog n$)}
+\subsubsection{Сортировка кучей (heap sort)}
+
+\section{Куча}
+\section{Бинарные деревья поиска}
+\subsection{Декартово дерево, курево, дуча (treap)}
+\subsection{Красно-чёрное дерево (rb tree)}
+\end{document}
