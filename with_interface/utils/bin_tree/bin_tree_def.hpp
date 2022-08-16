@@ -2,11 +2,12 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include <clocale>
 #include <string>
 #include <cstddef>
 
-#include "../utils_def.hpp"
+#include "utils_def.hpp"
 
 /*
  ~ Binary tree ~
@@ -110,7 +111,7 @@ private:
 		utils::triple<Key, Additional, Data>> &nodes,
 		std::size_t left, std::size_t right);
 	void display(std::ostream &out, node *it,
-		bool isr, std::string &&fmt,
+		char v_symb, std::string &&fmt,
 		utils::cool_int deep) const;
 
 	//
@@ -179,7 +180,7 @@ template <typename Key, typename Additional, typename Data>
 std::ostream &operator<<(std::ostream &out, const bin_tree<Key, Additional, Data> &tr) {
 	setlocale(LC_ALL, "Russian_Russia.20866");
 	if (tr.head)
-		tr.display(out, tr.head, false, std::string(""), 0);
+		tr.display(out, tr.head, char(134), std::string(" "), 0);
 	return out;
 }
 
@@ -188,7 +189,7 @@ class simple_tree : public bin_tree<Key, bool, bool> {
 public:
 	simple_tree() {}
 	simple_tree(const std::vector<Key> &elems) {
-		std::vector<utils::triple<Key, bool>> to_init(elems.size());
+		std::vector<utils::triple<Key, bool, bool>> to_init(elems.size());
 		auto it = elems.cbegin();
 		std::generate(to_init.begin(), to_init.end(),
 			[&it]() { return utils::make_triple(*it++, true, true); });

@@ -238,18 +238,24 @@ const std::pair<
 
 template <typename Key, typename Additional, typename Data>
 void bin_tree<Key, Additional, Data>::display(std::ostream &out, node *it,
-	bool isr, std::string &&fmt, utils::cool_int deep) const {
+	char v_symb, std::string &&fmt, utils::cool_int deep) const {
 	if (!it)
 		return;
+	if (it->right) {
+		fmt.push_back((v_symb == char(132) ? char(129) : ' '));
+		fmt.push_back(' ');
+		display(out, it->right, char(130), std::move(fmt), deep + 1);
+		fmt.pop_back();
+		fmt.pop_back();
+	}
 	out << char(135) << deep.x << char(134) << fmt;
-	out << (isr ? char(134) : char(132)) << " ";
+	out << v_symb << " ";
 	it->print(out);
 	out << std::endl;
-	if (it->left || it->right) {
-		fmt.push_back((isr ? char(129) : ' '));
+	if (it->left) {
+		fmt.push_back((v_symb == char(130) ? char(129) : ' '));
 		fmt.push_back(' ');
-		display(out, it->right, it->left, std::move(fmt), deep + 1);
-		display(out, it->left, false, std::move(fmt), deep + 1);
+		display(out, it->left, char(132), std::move(fmt), deep + 1);
 		fmt.pop_back();
 		fmt.pop_back();
 	}

@@ -4,7 +4,8 @@
 #include <iostream>
 #include <vector>
 
-#include "../utils/utils.hpp"
+#include "utils.hpp"
+#include "heap/heap.hpp"
 
 template <typename T>
 void heap_sort(std::vector<T> &mas, bool quiet) {
@@ -15,7 +16,7 @@ void heap_sort(std::vector<T> &mas, bool quiet) {
 		std::cout << mas << std::endl << std::endl;
 	}
 	
-	utils::heap<T> h(mas);
+	heap<T> h(mas);
 	if (!quiet)
 		std::cout << h << std::endl;
 	for (std::size_t i = 0; i < mas.size(); ++i) {
