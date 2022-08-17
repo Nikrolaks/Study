@@ -3,14 +3,13 @@
 #include "../bin_tree_def.hpp"
 #include "node.hpp"
 
-template <typename Key, typename Additional, typename Data>
-void bin_tree<Key, Additional, Data>::push(
-	const utils::triple<Key, Additional, Data> &unit) {
+template <typename Key>
+void bin_tree<Key>::push(const Key &unit) {
 	insert(new node(unit));
 }
 
-template <typename Key, typename Additional, typename Data>
-void bin_tree<Key, Additional, Data>::pop(const Key &elem) {
+template <typename Key>
+void bin_tree<Key>::pop(const Key &elem) {
 	auto pret = find(elem, &head, false);
 	if (*(pret.first)) {
 		node **pos = find(elem, &((*(pret.first))->left));

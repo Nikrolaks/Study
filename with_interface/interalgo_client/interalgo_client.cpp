@@ -5,7 +5,12 @@ using namespace std;
 
 int main()
 {
-	simple_treap<int> tr({ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+	dictionary<int, string> dict;
 
-	cout << tr << endl;
+	dict[1] = "hello";
+	dict[4] = "goodbye";
+	dict[3] = "mr";
+	dict[2] = "Robot";
+
+	cout << dict << endl;
 }

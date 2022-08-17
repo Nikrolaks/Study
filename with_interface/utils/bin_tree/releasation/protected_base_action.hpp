@@ -3,21 +3,20 @@
 #include "../bin_tree_def.hpp"
 #include "node.hpp"
 
-template<typename Key, typename Additional, typename Data>
-void bin_tree<Key, Additional, Data>::insert(node *v) {
-	auto ppos = find((*v)->first, &head, false);
+template<typename Key>
+void bin_tree<Key>::insert(node *v) {
+	auto ppos = find(**v, &head, false);
 	if (*(ppos.first))
 		return;
 	bind(find_ancestor(ppos.first, ppos.second),
 		v, ppos.second);
 }
 
-template <typename Key, typename Additional, typename Data>
+template <typename Key>
 const std::pair<
-	typename bin_tree<Key, Additional, Data>::node *,
-	typename bin_tree<Key, Additional, Data>::node *>
-	bin_tree<Key, Additional, Data>::split(
-		typename bin_tree<Key, Additional, Data>::node *v, Key c) {
+		typename bin_tree<Key>::node *,
+		typename bin_tree<Key>::node *
+	> bin_tree<Key>::split(node *v, Key c) {
 	if (!v)
 		return std::make_pair(nullptr, nullptr);
 	if ((*v)->first > c) {

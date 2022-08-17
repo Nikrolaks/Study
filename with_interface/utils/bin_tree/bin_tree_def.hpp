@@ -13,44 +13,26 @@
  ~ Binary tree ~
  Requirements:
 	> Key - comparable
-	> Additional - copyable
-	> Data - copyable
  */
-template<typename Key, typename Additional, typename Data>
+template<typename Key>
 class bin_tree {
-	template <typename Key1, typename Additional1, typename Data1>
-	friend std::ostream &operator<<(std::ostream &out,
-		const bin_tree<Key1, Additional1, Data1> &tr);
+	template <typename Key1>
+	friend std::ostream &operator<<(std::ostream &out, const bin_tree &tr);
 public:
 	bin_tree() {}
-	bin_tree(std::vector<utils::triple<Key, Additional, Data>> &nodes);
+	bin_tree(std::vector<Key> &&nodes);
 	~bin_tree() {
 		delete head;
 	}
-	virtual void push(const utils::triple<Key, Additional, Data> &node);
-	// Requirements:
-	//    > Additional - default constructable
-	virtual void push(const std::pair<Key, Data> &node) {
-		push(utils::make_triple(node.first, Additional(), node.second));
-	}
+	virtual void push(const Key &node);
 	virtual void pop(const Key &elem);
-
-	// Requirements:
-	//    > Data - default constructable
-	virtual Data &operator[](const Key &k) {
-		auto r = *find(k, &head);
-		if (r)
-			return (*r)->third;
-		else {
-			push(std::make_pair(k, Data()));
-			return (**find(k, &head))->third;
-		}
-	}
 protected:
 	class node;
 
 	node *head = nullptr;
 
+
+	bin_tree(std::vector<node *> &nodes);
 	void insert(node *v);
 
 	inline static const std::pair<node *, node *> split(node *v, Key c);
@@ -108,9 +90,7 @@ protected:
 			return find_ancestor<'l'>(child);
 	}
 private:
-	node *build_tree(
-		const std::vector<
-		utils::triple<Key, Additional, Data>> &nodes,
+	node *build_tree(const std::vector<node *> &nodes,
 		std::size_t left, std::size_t right);
 	void display(std::ostream &out, node *it,
 		char v_symb, std::string &&fmt,
@@ -166,42 +146,28 @@ private:
 
 	template <typename... Rest>
 	bool do_find_step(const Key &k, node *cur, Rest &... rest) const {
-		if ((*cur)->first > k) {
+		if (**cur > k) {
 			convert_step_params<'l'>(cur, rest...);
 			return true;
 		}
-		if ((*cur)->first < k) {
+		if (**cur < k) {
 			convert_step_params<'r'>(cur, rest...);
 			return true;
 		}
 		return false;
 	}
+public:
+	void draw(std::ostream &out) const {
+		if (head)
+			display(out, head, char(134), std::string(" "), 0);
+	}
 };
 
-template <typename Key, typename Additional, typename Data>
-std::ostream &operator<<(std::ostream &out, const bin_tree<Key, Additional, Data> &tr) {
+template <typename Key>
+std::ostream &operator<<(std::ostream &out, const bin_tree<Key> &tr) {
 	setlocale(LC_ALL, "Russian_Russia.20866");
-	if (tr.head)
-		tr.display(out, tr.head, char(134), std::string(" "), 0);
+	// if (tr.head)
+	//	 tr.display(out, tr.head, char(134), std::string(" "), 0);
+	tr.draw(out);
 	return out;
 }
-
-template<typename Key>
-class simple_tree : public bin_tree<Key, bool, bool> {
-public:
-	simple_tree() {}
-	simple_tree(const std::vector<Key> &elems) {
-		std::vector<utils::triple<Key, bool, bool>> to_init(elems.size());
-		auto it = elems.cbegin();
-		std::generate(to_init.begin(), to_init.end(),
-			[&it]() { return utils::make_triple(*it++, true, true); });
-		new (dynamic_cast<bin_tree<Key, bool, bool> *>(this))
-			bin_tree<Key, bool, bool>(to_init);
-	}
-
-	void push(const Key &elem) {
-		dynamic_cast<
-			bin_tree<Key, bool, bool> *>(this)->push(
-				utils::make_triple(elem, true, true));
-	}
-};
