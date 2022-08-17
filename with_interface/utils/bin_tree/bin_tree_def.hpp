@@ -51,6 +51,8 @@ protected:
 
 	node *head = nullptr;
 
+	void insert(node *v);
+
 	inline static const std::pair<node *, node *> split(node *v, Key c);
 
 	//

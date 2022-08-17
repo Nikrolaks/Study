@@ -12,10 +12,14 @@ namespace utils {
 		First first;
 		Second second;
 		Third third;
+
 		triple() = default;
-		triple(const First &f,
-			const Second &s, const Third &t) : 
+
+		triple(const First &f, const Second &s, const Third &t) :
 			first(f), second(s), third(t) {}
+
+		triple(const triple &oth) :
+			first(oth.first), second(oth.second), third(oth.third) {}
 	};
 
 	template <typename First, typename Second, typename Third>
