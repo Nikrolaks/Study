@@ -25,9 +25,9 @@ public:
 		delete right;
 	}
 
-	const Key &operator*() { return key; }
+	const Key &operator*() const { return key; }
 
-	virtual void print(std::ostream &out) {
+	virtual void print(std::ostream &out) const {
 		out << "[" << key << "]";
 	}
 };

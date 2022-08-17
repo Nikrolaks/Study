@@ -19,7 +19,7 @@ const std::pair<
 	> bin_tree<Key>::split(node *v, Key c) {
 	if (!v)
 		return std::make_pair(nullptr, nullptr);
-	if ((*v)->first > c) {
+	if (**v > c) {
 		auto p(split(v->left, c));
 		bind<'l'>(v, p.second);
 		return std::make_pair(p.first, v);

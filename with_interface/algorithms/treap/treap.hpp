@@ -2,77 +2,91 @@
 
 #include <iostream>
 #include <vector>
-#include <clocale>
-#include <string>
 #include <algorithm>
 
 #include "treap_def.hpp"
 
-template <typename Key, typename Prior, typename Data>
-treap<Key, Prior, Data>::treap(
-	std::vector<utils::triple<Key, Prior, Data>> &nodes) {
-	std::sort(nodes.begin(), nodes.end(), [](
-		const decltype(nodes[0]) &f,
-		const decltype(nodes[0]) &s) {
+template <typename Key, typename Prior>
+treap<Key, Prior>::treap(std::vector<std::pair<Key, Prior>> &&elems) {
+	std::sort(elems.begin(), elems.end(), [](
+		const decltype(elems[0]) &f,
+		const decltype(elems[0]) &s) {
 		return f.first < s.first; 
 	});
+	std::vector<node *> nodes(elems.size());
+	auto it = elems.begin();
+	std::generate(nodes.begin(), nodes.end(), [&]() {
+		return new node(*it++);
+	});
+	build_treap(nodes);
+}
+
+template <typename Key, typename Prior>
+void treap<Key, Prior>::build_treap(const std::vector<node *> &nodes) {
 	if (nodes.size()) {
-		bin_tree<Key, Prior, Data>::head = 
-			new typename bin_tree<Key, Prior, Data>::node(
-				nodes[0].first, nodes[0].second, nodes[0].third);
-		typename bin_tree<Key, Prior, Data>::node *last = 
-			bin_tree<Key, Prior, Data>::head;
+		node *last;
+		this->head = last = nodes[0];
 		auto it = nodes.begin();
-		for (++it; it != nodes.end(); ++it) {
-			while (last && (*last)->second > (*it).second)
-				last = last->ancestor;
-			if (!last)
-				last = 
-				bin_tree<Key, Prior, Data>::head = 
-				new typename bin_tree<Key, Prior, Data>::node(
-					(*it).first,
-					(*it).second,
-					(*it).third,
-					bin_tree<Key, Prior, Data>::head, nullptr);
+		for (++it; it != nodes.end(); last = *it, ++it) {
+			while (last && (**last) > (***it))
+				last = reinterpret_cast<node *>(last->ancestor);
+			if (!last) {
+				this->bind<'l'>(*it, this->head);
+				this->head = *it;
+			}
 			else {
-				(*last).right = new 
-					typename bin_tree<Key, Prior, Data>::node(
-					(*it).first, (*it).second, (*it).third,
-					(*last).right, nullptr, last);
-				last = last->right;
+				this->bind<'l'>(*it, last->right);
+				this->bind<'r'>(last, *it);
 			}
 		}
 	}
 }
 
-template <typename Key, typename Prior, typename Data>
-void treap<Key, Prior, Data>::push(
-	const utils::triple<Key, Prior, Data> &node) {
-	auto res = bin_tree<Key, Prior, Data>::find(
-		node.first,
-		&(bin_tree<Key, Prior, Data>::head),
+template <typename Key, typename Prior>
+void treap<Key, Prior>::push(const std::pair<Key, Prior> &unit) {
+	auto res = this->find(
+		unit.first,
+		&(this->head),
 		nullptr,
-		&(bin_tree<Key, Prior, Data>::head),
-		[&node](const Prior &p) { return p <= node.second; }
+		&(this->head),
+		[&unit](typename bin_tree<Key>::node *v) { 
+			return **reinterpret_cast<node *>(v) <= unit.second;
+		}
 	);
-	auto p = bin_tree<Key, Prior, Data>::split(res.first, node.first);
-	*(res.second.first) = new 
-		typename bin_tree<Key, Prior, Data>::node(
-			node.first, node.second, node.third,
+	auto p = this->split(res.first, unit.first);
+	*(res.second.first) = new node(unit.first, unit.second,
 			p.first, p.second, res.second.second);
 }
 
-template <typename Key, typename Prior, typename Data>
-void treap<Key, Prior, Data>::pop(const Key &elem) {
-	auto res = bin_tree<Key, Prior, Data>::find(
+template <typename Key, typename Prior>
+void treap<Key, Prior>::insert(node *v) {
+	auto res = this->find(
+		**((typename bin_tree<Key>::node *)(v)),
+		&(this->head),
+		false,
+		[&v](typename bin_tree<Key>::node &w) {
+			return *reinterpret_cast<node &>(w) <= **v;
+		}
+	);
+	auto w = *(res.first);
+	auto p = this->split(w,
+		**((typename bin_tree<Key>::node *)(v)));
+	this->bind<'l'>(v, p.first);
+	this->bind<'r'>(v, p.second);
+	this->bind(this->find_ancestor(res.first, res.second), v, res.second);
+}
+
+template <typename Key, typename Prior>
+void treap<Key, Prior>::pop(const Key &elem) {
+	auto res = this->find(
 		elem,
-		&(bin_tree<Key, Prior, Data>::head), 
+		&(this->head), 
 		nullptr,
-		&(bin_tree<Key, Prior, Data>::head));
+		&(this->head));
 	if (res.first) {
 		auto cur = merge(
-			(res.first)->left,
-			(res.first)->right
+			reinterpret_cast<node *>((res.first)->left),
+			reinterpret_cast<node *>((res.first)->right)
 		);
 		*res.second.first = cur;
 		if (cur) cur->ancestor = res.second.second;
@@ -81,38 +95,39 @@ void treap<Key, Prior, Data>::pop(const Key &elem) {
 	}
 }
 
-template <typename Key, typename Prior, typename Data>
-typename bin_tree<Key, Prior, Data>::node *
-	treap<Key, Prior, Data>::merge(
-		typename bin_tree<Key, Prior, Data>::node *f,
-		typename bin_tree<Key, Prior, Data>::node *s) {
+template <typename Key, typename Prior>
+typename treap<Key, Prior>::node *
+	treap<Key, Prior>::merge(node *f, node *s) {
 	if (!f || !s)
-		return reinterpret_cast<typename bin_tree<Key, Prior, Data>::node *>((std::size_t)f + (std::size_t)s);
-	if ((*f)->second < (*s)->second) {
-		bin_tree<Key, Prior, Data>::bind<'r'>(f, merge(f->right, s));
+		return reinterpret_cast<node *>((std::size_t)f + (std::size_t)s);
+	if (**f < **s) {
+		bin_tree<Key>::bind<'r'>(f, merge(
+			reinterpret_cast<node *>(f->right),
+			s)
+		);
 		return f;
 	}
 	else {
-		bin_tree<Key, Prior, Data>::bind<'l'>(s, merge(f, s->left));
+		bin_tree<Key>::bind<'l'>(s, merge(
+			f,
+			reinterpret_cast<node *>(s->left))
+		);
 		return s;
 	}
 }
 
-template <typename Key, typename Prior, typename Data>
-typename bin_tree<Key, Prior, Data>::node *
-	treap<Key, Prior, Data>::cool_merge(
-		typename bin_tree<Key, Prior, Data>::node *f,
-		typename bin_tree<Key, Prior, Data>::node *s) {
+template <typename Key, typename Prior>
+typename treap<Key, Prior>::node *
+	treap<Key, Prior>::cool_merge(node *f, node *s) {
 	if (!f || !s)
-		return reinterpret_cast<typename bin_tree<Key, Prior, Data>::node *>((std::size_t)f + (std::size_t)s);
+		return reinterpret_cast<node *>((std::size_t)f + (std::size_t)s);
 
-	bool flag = (*f)->second < (*s)->second;
-	typename bin_tree<Key, Prior, Data>::node 
-		*max = flag ? f : s, *min = flag ? s : f;
+	bool flag = **f < **s;
+	node *max = flag ? f : s, *min = flag ? s : f;
 
-	auto p = bin_tree<Key, Prior, Data>::split(min, (*max)->first);
-	bin_tree<Key, Prior, Data>::bind<'l'>(max, cool_merge(max->left, p.first));
-	bin_tree<Key, Prior, Data>::bind<'r'>(max, cool_merge(max->right, p.second));
+	auto p = this->split(min, *(bin_tree<Key> *(max)));
+	this->bind<'l'>(max, cool_merge(max->left, p.first));
+	this->bind<'r'>(max, cool_merge(max->right, p.second));
 
 	return max;
 }

@@ -13,7 +13,7 @@
 
 // установите здесь ссылки на дополнительные заголовки, требующиеся для программы
 // Heap
-//#include "heap/heap.hpp"
+#include "heap/heap.hpp"
 
 // Sorts
 #include "sorts/sorts_n2.hpp"
@@ -23,6 +23,6 @@
 #include "utils.hpp"
 
 // Treap
-//#include "treap/treap.hpp"
+#include "treap/treap.hpp"
 // Red-black tree
 //#include "rb_tree/rb_tree.hpp"

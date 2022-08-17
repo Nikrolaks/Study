@@ -61,19 +61,19 @@ void bin_tree<Key>::display(std::ostream &out, node *it,
 template<typename Key, typename Data>
 class dictionary : public bin_tree<Key> {
 protected:
-	class d_node : public bin_tree<Key>::node {
+	class node : public bin_tree<Key>::node {
 	private:
 		Data data;
 	public:
-		d_node(const Key &key) : bin_tree<Key>::node(key) {}
-		d_node(const Key &key, const Data &data) :
+		node(const Key &key) : bin_tree<Key>::node(key) {}
+		node(const Key &key, const Data &data) :
 			bin_tree<Key>::node(key), data(data) {}
-		d_node(const std::pair<Key, Data> &v) :
+		node(const std::pair<Key, Data> &v) :
 			bin_tree<Key>::node(v.first), data(v.second) {}
 
 		Data &operator*() { return data; }
 
-		virtual void print(std::ostream &out) override {
+		virtual void print(std::ostream &out) const override {
 			bin_tree<Key>::node::print(out);
 			out << " = " << data;
 		}
@@ -82,14 +82,14 @@ protected:
 public:
 	dictionary() {}
 	dictionary(const std::vector<std::pair<Key, Data>> &elems) {
-		std::vector<d_node *> nodes(elems.size());
+		std::vector<node *> nodes(elems.size());
 		auto it = elems.begin();
-		std::generate(nodes.begin(), nodes.end(), [&it]() { return new d_node(*it++); });
+		std::generate(nodes.begin(), nodes.end(), [&it]() { return new node(*it++); });
 		new (dynamic_cast<bin_tree<Key> *>(this)) bin_tree<Key>(nodes);
 	}
 
 	void push(const Key &key, const Data &data) {
-		this->insert(new d_node(key, data));
+		this->insert(new node(key, data));
 	}
 
 	// Requarements:
@@ -97,11 +97,11 @@ public:
 	Data &operator[](const Key &key) {
 		auto ret = *this->find(key, &(this->head));
 		if (ret) {
-			return **reinterpret_cast<d_node *>(ret);
+			return **reinterpret_cast<node *>(ret);
 		}
 		else {
 			push(key, Data());
-			return **reinterpret_cast<d_node *>(*this->find(key, &(this->head)));
+			return **reinterpret_cast<node *>(*this->find(key, &(this->head)));
 		}
 	}
 };

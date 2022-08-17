@@ -1,16 +1,17 @@
 ﻿#include <iostream>
 #include <interalgo.h>
 
-using namespace std;
-
 int main()
 {
-	dictionary<int, string> dict;
+	map<int, char> m;
 
-	dict[1] = "hello";
-	dict[4] = "goodbye";
-	dict[3] = "mr";
-	dict[2] = "Robot";
+	m[3] = 'a';
+	m[2] = 'b';
+	m[7] = 'c';
+	m[1] = 'd';
+	m[12] = 'e';
+	m[37] = 'f';
 
-	cout << dict << endl;
+	std::cout << m << std::endl;
+	system("pause");
 }

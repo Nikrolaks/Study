@@ -32,6 +32,7 @@ namespace utils {
 		long long x;
 		cool_int() = default;
 		cool_int(long long x) : x(x) {}
+		cool_int(const cool_int &oth) : x(oth.x) {}
 		operator long long() {
 			return x;
 		}

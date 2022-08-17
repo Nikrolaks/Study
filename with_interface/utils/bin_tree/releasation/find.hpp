@@ -53,7 +53,7 @@ const std::pair<typename bin_tree<Key>::node **, bool> &
 	bin_tree<Key>::find(const Key &k, node **cur, bool side,
 		TFunc detect) const {
 	while (*cur && detect(**cur) && do_find_step(k, *cur, side, cur));
-	return cur;
+	return std::move(std::make_pair(cur, side));
 }
 
 template <typename Key>
